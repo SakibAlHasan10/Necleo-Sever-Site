@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
@@ -24,6 +24,7 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
+  const projectsCollection = client.db(process.env.CLIENT_DB).collection("projects");
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
@@ -34,6 +35,31 @@ async function run() {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
+
+  // get single projects
+  app.get("/projects/:id", async (req, res) => {
+    try {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await projectsCollection.findOne(filter);
+      res.send(result);
+    } catch (error) {
+      res.send(error);
+    }
+  });
+
+  // get projects
+
+  app.get("/projects", async (req, res) => {
+    try {
+      const query = projectsCollection.find();
+      const result = await query.toArray();
+      res.send(result);
+    } catch (error) {
+      res.send(error);
+    }
+  });
+
 }
 run().catch(console.dir);
 
